@@ -1,6 +1,8 @@
 /** JSON Schema for skill frontmatter fields */
 
 import type { SkillFrontmatter, ValidationError } from "./types.js";
+import { validateSkillName } from "./validators/name.js";
+import { validateVersion } from "./validators/version.js";
 
 export interface SchemaRule {
   field: string;
@@ -28,6 +30,16 @@ export function validateFrontmatterSchema(fm: SkillFrontmatter | null): Validati
     return errors;
   }
 
+  // Delegate specialized validators
+  if ("name" in fm && typeof fm.name === "string") {
+    errors.push(...validateSkillName(fm.name));
+  }
+
+  if ("version" in fm && typeof fm.version === "string") {
+    errors.push(...validateVersion(fm.version));
+  }
+
+  // Standard rule-based validation
   for (const rule of SKILL_SCHEMA) {
     const value = fm[rule.field as keyof typeof fm];
     const hasValue = value !== undefined && value !== null && (typeof value !== "string" || value.trim() !== "");
