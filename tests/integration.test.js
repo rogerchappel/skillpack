@@ -10,7 +10,7 @@ import { checkReferences } from "../dist/checker.js";
 import { runFixture } from "../dist/runner.js";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { dirname } from "node:node:path".replace("node:node:path", "node:path");
+import { dirname } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(__dirname, "..", "fixtures", "skills");
