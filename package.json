@@ -1,0 +1,56 @@
+{
+  "name": "skillpack",
+  "version": "0.1.0",
+  "description": "Validate, lint, test, and package agent skills — the Jest for agent skill directories",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "skillpack": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test --experimental-test-coverage 'tests/**/*.test.js'",
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "smoke": "node dist/cli.js validate fixtures/skills/ --report",
+    "package:check": "npm pack --dry-run",
+    "release:check": "npm test && npm run build && npm run package:check"
+  },
+  "keywords": [
+    "skills",
+    "agent",
+    "validation",
+    "linting",
+    "testing",
+    "claude-code",
+    "cline",
+    "openclaw",
+    "markdown",
+    "yaml"
+  ],
+  "author": "Roger Chappel",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rogerchappel/skillpack.git"
+  },
+  "homepage": "https://github.com/rogerchappel/skillpack",
+  "bugs": {
+    "url": "https://github.com/rogerchappel/skillpack/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.9"
+  }
+}
