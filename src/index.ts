@@ -24,3 +24,9 @@ export { checkMarkdownSyntax } from "./validators/markdown.js";
 export { validateFrontmatterSchema, SKILL_SCHEMA } from "./schema.js";
 export { detectReferences, checkReferences } from "./checker.js";
 export { runFixture } from "./runner.js";
+
+// Specialized validators for programmatic use
+export { validateSkillName } from "./validators/name.js";
+export { validateVersion } from "./validators/version.js";
+export { validateTags } from "./validators/tags.js";
+export { validateScope } from "./validators/scope.js";
