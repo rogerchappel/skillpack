@@ -2,7 +2,7 @@
 
 /**
  * skillpack CLI entry point
- * 
+ *
  * Usage:
  *   skillpack validate <dir>  - Validate SKILL.md structure
  *   skillpack lint <dir>      - Schema & dependency checking
@@ -16,6 +16,8 @@ import { checkMarkdownSyntax } from "./validators/markdown.js";
 import { validateFrontmatterSchema, SKILL_SCHEMA } from "./schema.js";
 import { checkReferences } from "./checker.js";
 import { runFixture } from "./runner.js";
+import { validateScope } from "./validators/scope.js";
+import { validateTags } from "./validators/tags.js";
 import { green, red, yellow, blue, dim, bold, cyan } from "./ui/colors.js";
 
 type Command = "validate" | "lint" | "test" | "report" | "help" | "--version" | "-v";
@@ -49,6 +51,49 @@ function printHelp(): void {
   console.log(`  --version  ${dim("Show version")}`);
 }
 
+// --- Validation Helpers ----------
+
+function collectErrorsAndWarnings(skill: ReturnType<typeof parseSkillFile>): { errors: string[]; warnings: string[] } {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Frontmatter validation
+  const fmErrors = validateFrontmatter(skill.frontmatter);
+  for (const e of fmErrors) {
+    if (e.severity === "error") errors.push(`${e.code}: ${e.message}`);
+    else warnings.push(`${e.code}: ${e.message}`);
+  }
+
+  // Markdown syntax
+  const syntaxErrors = checkMarkdownSyntax(skill.body);
+  for (const e of syntaxErrors) {
+    if (e.severity === "error") errors.push(`${e.code}: ${e.message}`);
+    else warnings.push(`${e.code}: ${e.message}`);
+  }
+
+  // Scope validation
+  if (skill.frontmatter) {
+    const scopeErrs = validateScope(skill.frontmatter.scope as string);
+    for (const e of scopeErrs) {
+      if (e.severity === "error") errors.push(`${e.code}: ${e.message}`);
+      else warnings.push(`${e.code}: ${e.message}`);
+    }
+  }
+
+  // Tags validation
+  if (skill.frontmatter && "tags" in skill.frontmatter) {
+    const tagErrs = validateTags(skill.frontmatter.tags);
+    for (const e of tagErrs) {
+      if (e.severity === "error") errors.push(`${e.code}: ${e.message}`);
+      else warnings.push(`${e.code}: ${e.message}`);
+    }
+  }
+
+  return { errors, warnings };
+}
+
+// --- Commands ----------
+
 async function runValidate(dir: string): Promise<void> {
   console.log(bold(blue("skillpack validate")));
   console.log(dim(`scanning: ${dir}\n`));
@@ -68,28 +113,13 @@ async function runValidate(dir: string): Promise<void> {
 
   for (const file of files) {
     const skill = parseSkillFile(file);
-    const errors: string[] = [];
-    const warnings: string[] = [];
+    const { errors, warnings } = collectErrorsAndWarnings(skill);
 
-    // Frontmatter validation
-    const fmErrors = validateFrontmatter(skill.frontmatter);
-    for (const e of fmErrors) {
-      if (e.severity === "error") errors.push(`${e.code}: ${e.message}`);
-      else warnings.push(`${e.code}: ${e.message}`);
-    }
-
-    // Markdown syntax
-    const syntaxErrors = checkMarkdownSyntax(skill.body);
-    for (const e of syntaxErrors) {
-      if (e.severity === "error") errors.push(`${e.code}: ${e.message}`);
-      else warnings.push(`${e.code}: ${e.message}`);
-    }
-
+    totalErrors += errors.length;
+    totalWarnings += warnings.length;
     const passed = errors.length === 0;
     if (passed) totalPassed++;
     else totalFailed++;
-    totalErrors += errors.length;
-    totalWarnings += warnings.length;
 
     const symbol = passed ? green("✓") : red("✗");
     const status = passed ? green("PASS") : red("FAIL");
@@ -128,7 +158,7 @@ async function runLint(dir: string): Promise<void> {
 
   for (const file of files) {
     const skill = parseSkillFile(file);
-    const errors: string[] = [];
+    const { errors, warnings } = collectErrorsAndWarnings(skill);
 
     // Schema validation
     const schemaErrors = validateFrontmatterSchema(skill.frontmatter);
@@ -151,6 +181,9 @@ async function runLint(dir: string): Promise<void> {
     console.log(`  ${symbol} ${status}  ${file}`);
     for (const e of errors) {
       console.log(dim(`      → ${red(e)}`));
+    }
+    for (const w of warnings) {
+      console.log(dim(`      → ${yellow(w)}`));
     }
 
     // Check inline fixtures
@@ -241,8 +274,11 @@ async function runReport(dir: string, opts?: { json: boolean }): Promise<void> {
     const fmErrors = validateFrontmatter(skill.frontmatter);
     const schemaErrors = validateFrontmatterSchema(skill.frontmatter);
     const syntaxErrors = checkMarkdownSyntax(skill.body);
+    const scopeErrs = skill.frontmatter ? validateScope(skill.frontmatter.scope as string) : [];
+    const tagErrs = skill.frontmatter && "tags" in skill.frontmatter ? validateTags(skill.frontmatter.tags) : [];
 
-    for (const e of [...fmErrors, ...schemaErrors, ...syntaxErrors]) {
+    const allValidation = [...fmErrors, ...schemaErrors, ...syntaxErrors, ...scopeErrs, ...tagErrs];
+    for (const e of allValidation) {
       issues.push(`${e.severity.toUpperCase()}: ${e.code} - ${e.message}`);
     }
 
