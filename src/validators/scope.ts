@@ -20,13 +20,14 @@ export type KnownScope = typeof KNOWN_SCOPES[number];
 export function validateScope(scope: string | undefined): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (!scope) {
+  if (scope === undefined || scope === null) {
     return errors; // scope is optional
   }
 
   const normalized = scope.toLowerCase().trim();
   if (normalized.length === 0) {
     errors.push({ code: "EMPTY_SCOPE", message: "Scope field must not be empty", severity: "warning" });
+    return errors;
   }
 
   const match = KNOWN_SCOPES.find(s => s === normalized);
