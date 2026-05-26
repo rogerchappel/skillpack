@@ -141,6 +141,16 @@ const errors = [...validateFrontmatter(skill.frontmatter), ...validateFrontmatte
 - Node.js ≥ 18.0.0
 - TypeScript ≥ 5.9 (building from source)
 
+## Verify
+
+```bash
+npm run check
+npm test
+npm run build
+npm run smoke
+npm run release:check
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
