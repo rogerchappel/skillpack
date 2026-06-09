@@ -6,7 +6,7 @@ on:
     paths:
       - releasebox.config.json
       - package.json
-      - package-lock.json
+      - pnpm-lock.yaml
       - .github/workflows/release*.yml
 
 permissions:
@@ -23,12 +23,11 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       - name: Install ReleaseBox
         run: |
           set -euo pipefail
