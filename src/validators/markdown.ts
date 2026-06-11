@@ -64,5 +64,41 @@ export function checkMarkdownSyntax(body: string): ValidationError[] {
     errors.push({ code: "NO_HEADING", message: "Skill should contain at least one heading", severity: "warning" });
   }
 
+  errors.push(...checkSideEffectBoundaries(lines));
+
   return errors;
+}
+
+const SIDE_EFFECT_PATTERN =
+  /\b(publish|post|submit|send|delete|remove|deploy|release|merge|approve|reject|queue|upload|write to|create issue|open pr)\b/i;
+const APPROVAL_PATTERN = /\b(approval|approve|approved|confirm|consent|permission|dry-run|dry run|preview|review first)\b/i;
+
+function checkSideEffectBoundaries(lines: string[]): ValidationError[] {
+  const warnings: ValidationError[] = [];
+  let inCodeBlock = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim().startsWith("```")) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock || !SIDE_EFFECT_PATTERN.test(line)) {
+      continue;
+    }
+
+    const windowStart = Math.max(0, i - 2);
+    const windowEnd = Math.min(lines.length, i + 3);
+    const context = lines.slice(windowStart, windowEnd).join("\n");
+    if (!APPROVAL_PATTERN.test(context)) {
+      warnings.push({
+        code: "SIDE_EFFECT_BOUNDARY_MISSING",
+        message: "External side-effect instruction should mention approval, confirmation, preview, or dry-run boundaries",
+        line: i + 1,
+        severity: "warning",
+      });
+    }
+  }
+
+  return warnings;
 }
