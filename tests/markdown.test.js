@@ -25,6 +25,18 @@ describe("markdown syntax", () => {
     const errors = checkMarkdownSyntax("");
     assert.ok(errors.some(e => e.code === "EMPTY_BODY"));
   });
+
+  it("warns when external side effects lack approval boundaries", () => {
+    const body = "# Deploy\n\n- Deploy the app and publish the release notes.\n";
+    const errors = checkMarkdownSyntax(body);
+    assert.ok(errors.some(e => e.code === "SIDE_EFFECT_BOUNDARY_MISSING"));
+  });
+
+  it("accepts side effects with dry-run or approval language", () => {
+    const body = "# Release\n\n- Prepare a dry-run first.\n- Deploy only after explicit approval.\n";
+    const errors = checkMarkdownSyntax(body);
+    assert.ok(!errors.some(e => e.code === "SIDE_EFFECT_BOUNDARY_MISSING"));
+  });
 });
 
 describe("checker", () => {

@@ -120,6 +120,7 @@ skillpack validates:
 | **Frontmatter** | Required fields, type checking, empty values |
 | **Schema** | Name format (kebab-case), semver version, field lengths |
 | **Markdown** | Unclosed code blocks, malformed headers, empty body |
+| **Safety** | Side-effect instructions that lack approval, preview, or dry-run boundaries |
 | **Scope** | Known ecosystem categories (20+ recognized) |
 | **Tags** | Array format, lowercase, no duplicates, max 20 tags |
 | **References** | Broken file links, missing dependencies |
