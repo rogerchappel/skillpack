@@ -153,6 +153,12 @@ npm run package:smoke
 npm run release:check
 ```
 
+## Safety And Limitations
+
+- `skillpack` validates skill file structure, references, and fixtures; it does not prove that a skill is safe, useful, or policy-compliant in a live agent runtime.
+- Fixture execution is local and deterministic. Review any skill-provided commands or tool instructions before running them against private workspaces.
+- Passing validation should be treated as a packaging gate, not as human approval to install a third-party skill.
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
